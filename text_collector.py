@@ -15,7 +15,11 @@ def extract_text_from_txt(txt_path):
 
 def chunk_text(text, chunk_size=1000, chunk_overlap=100):
     """Splits text into smaller chunks with optional overlap."""
-    if chunk_overlap >= chunk_size: 
+    if not isinstance(chunk_size, int) or chunk_size <= 0:
+        raise ValueError("Chunk size must be a positive integer.")
+    if not isinstance(chunk_overlap, int) or chunk_overlap < 0:
+        raise ValueError("Chunk overlap must be a non-negative integer.")
+    if chunk_overlap >= chunk_size:
         raise ValueError("Chunk size must be larger than chunk overlap.")
     chunks = []
     start = 0
