@@ -16,7 +16,7 @@ def extract_text_from_txt(txt_path):
 def chunk_text(text, chunk_size=1000, chunk_overlap=100):
     """Splits text into smaller chunks with optional overlap."""
     if chunk_overlap >= chunk_size: 
-        raise Exception("Chunk size must be larger than chunk overlap.")
+        raise ValueError("Chunk size must be larger than chunk overlap.")
     chunks = []
     start = 0
     while start < len(text):
@@ -82,8 +82,6 @@ def query_chroma_index(query, collection_name="text_collection", num_results=5, 
 
     print(f"\nQuery: {query}\n")
     if results and results['documents'] and results['metadatas']:
-        print("foo")
-        print(results['data'])
         for i in range(len(results['documents'][0])):
             print(f"Result {i+1}:")
             print(f"  File: {results['metadatas'][0][i]['source']}")
