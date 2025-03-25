@@ -1,7 +1,8 @@
 import argparse
+import chromadb
 import os
 from sentence_transformers import SentenceTransformer
-import chromadb
+
 
 def extract_text_from_txt(txt_path):
     """Extracts text content from a TXT file."""
@@ -12,6 +13,7 @@ def extract_text_from_txt(txt_path):
     except Exception as e:
         print(f"Error reading TXT file {txt_path}: {e}")
     return text
+
 
 def chunk_text(text, chunk_size=1000, chunk_overlap=100):
     """Splits text into smaller chunks with optional overlap."""
@@ -32,6 +34,7 @@ def chunk_text(text, chunk_size=1000, chunk_overlap=100):
         start = end - chunk_overlap
     return chunks
 
+
 def create_chroma_index(text_files, collection_name="text_collection", chunk_size=1000, chunk_overlap=100, embedding_model_name='all-MiniLM-L6-v2', persist_directory="chroma_db"):
     """Creates a ChromaDB index from TXT files."""
     num_chunks = 0
@@ -48,8 +51,10 @@ def create_chroma_index(text_files, collection_name="text_collection", chunk_siz
         text = extract_text_from_txt(text_file)
         chunks = chunk_text(text, chunk_size, chunk_overlap)
         all_chunks.extend(chunks)
-        metadatas.extend([{"source": os.path.basename(text_file)}] * len(chunks))
-        ids.extend([f"{os.path.basename(text_file)}_{i}" for i in range(len(chunks))])
+        metadatas.extend(
+            [{"source": os.path.basename(text_file)}] * len(chunks))
+        ids.extend(
+            [f"{os.path.basename(text_file)}_{i}" for i in range(len(chunks))])
         num_chunks += len(chunks)
 
     if not all_chunks:
@@ -65,7 +70,9 @@ def create_chroma_index(text_files, collection_name="text_collection", chunk_siz
         ids=ids
     )
 
-    print(f"ChromaDB index created and saved to {persist_directory} with collection name '{collection_name}'")
+    print(
+        f"ChromaDB index created and saved to {persist_directory} with collection name '{collection_name}'")
+
 
 def query_chroma_index(query, collection_name="text_collection", num_results=5, embedding_model_name='all-MiniLM-L6-v2', persist_directory="chroma_db"):
     """Queries the ChromaDB index."""
@@ -73,7 +80,8 @@ def query_chroma_index(query, collection_name="text_collection", num_results=5, 
     try:
         collection = client.get_collection(name=collection_name)
     except:
-        print(f"Collection '{collection_name}' not found in {persist_directory}. Please create the index first using the --index option.")
+        print(
+            f"Collection '{collection_name}' not found in {persist_directory}. Please create the index first using the --index option.")
         return
 
     model = SentenceTransformer(embedding_model_name)
@@ -95,21 +103,33 @@ def query_chroma_index(query, collection_name="text_collection", num_results=5, 
     else:
         print("No matching results found.")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Create and query a ChromaDB vector store from text files.")
+    parser = argparse.ArgumentParser(
+        description="Create and query a ChromaDB vector store from text files.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--index", nargs='+', help="Create the ChromaDB index from one or more TXT files.")
-    group.add_argument("--query", type=str, help="Query the ChromaDB index with a text string.")
-    parser.add_argument("--collection_name", type=str, default="text_collection", help="Name of the ChromaDB collection.")
-    parser.add_argument("--persist_directory", type=str, default="chroma_db", help="Directory to persist the ChromaDB database.")
-    parser.add_argument("--chunk_size", type=int, default=1000, help="Size of text chunks for indexing.")
-    parser.add_argument("--chunk_overlap", type=int, default=100, help="Overlap between text chunks for indexing.")
-    parser.add_argument("--num_results", type=int, default=5, help="Number of search results to return for a query.")
-    parser.add_argument("--embedding_model", type=str, default='all-MiniLM-L6-v2', help="Name of the sentence transformer model to use.")
+    group.add_argument("--index", nargs='+',
+                       help="Create the ChromaDB index from one or more TXT files.")
+    group.add_argument("--query", type=str,
+                       help="Query the ChromaDB index with a text string.")
+    parser.add_argument("--collection_name", type=str,
+                        default="text_collection", help="Name of the ChromaDB collection.")
+    parser.add_argument("--persist_directory", type=str, default="chroma_db",
+                        help="Directory to persist the ChromaDB database.")
+    parser.add_argument("--chunk_size", type=int, default=1000,
+                        help="Size of text chunks for indexing.")
+    parser.add_argument("--chunk_overlap", type=int, default=100,
+                        help="Overlap between text chunks for indexing.")
+    parser.add_argument("--num_results", type=int, default=5,
+                        help="Number of search results to return for a query.")
+    parser.add_argument("--embedding_model", type=str, default='all-MiniLM-L6-v2',
+                        help="Name of the sentence transformer model to use.")
 
     args = parser.parse_args()
 
     if args.index:
-        create_chroma_index(args.index, args.collection_name, args.chunk_size, args.chunk_overlap, args.embedding_model, args.persist_directory)
+        create_chroma_index(args.index, args.collection_name, args.chunk_size,
+                            args.chunk_overlap, args.embedding_model, args.persist_directory)
     elif args.query:
-        query_chroma_index(args.query, args.collection_name, args.num_results, args.embedding_model, args.persist_directory)
+        query_chroma_index(args.query, args.collection_name,
+                           args.num_results, args.embedding_model, args.persist_directory)
