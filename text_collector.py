@@ -237,7 +237,7 @@ def display_markdown_response(response):
     console.print(md)
 
 
-def answer_question(query, question, collection_name="text_collection",
+def answer_question(search_query, question, collection_name="text_collection",
                     num_results=5, model="deepseek-chat"):
     """
     End-to-end pipeline to answer questions using retrieved context.
@@ -250,7 +250,7 @@ def answer_question(query, question, collection_name="text_collection",
         model: DeepSeek model to use
     """
     # Get relevant chunks
-    results = query_chroma_index(query, collection_name=collection_name,
+    results = query_chroma_index(search_query, collection_name=collection_name,
                                  num_results=num_results, return_results=True)
     if not results:
         print("No relevant context found to answer the question.")
@@ -356,7 +356,7 @@ if __name__ == "__main__":
         )
     elif args.ask:
         answer_question(
-            query=args.ask[0],
+            search_query=args.ask[0],
             question=args.ask[1],
             collection_name=args.collection_name,
             num_results=args.num_results,
