@@ -279,6 +279,7 @@ if __name__ == "__main__":
     group.add_argument(
         "--index",
         nargs='+',
+        metavar="TEXT_FILE",
         help="Create the ChromaDB index from one or more TXT files."
     )
     group.add_argument(
@@ -332,7 +333,7 @@ if __name__ == "__main__":
         "--model",
         type=str,
         default="claude-3-opus-20240229",
-        help="DeepSeek model to use for answering questions"
+        help="Model to use for answering questions (claude-* or deepseek-*)"
     )
 
     args = parser.parse_args()
