@@ -273,7 +273,7 @@ def answer_question(search_query, question, collection_name="text_collection",
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Create and query a ChromaDB vector store from text files."
+        description="Semantic search and question answering for your text collections."
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
