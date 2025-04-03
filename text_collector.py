@@ -1,6 +1,10 @@
+import anthropic
 import argparse
 import chromadb
+from deepseek import DeepSeekAPI
 import os
+from rich.console import Console
+from rich.markdown import Markdown
 from sentence_transformers import SentenceTransformer
 
 
@@ -84,8 +88,9 @@ def query_chroma_index(query,
                        collection_name="text_collection",
                        num_results=5,
                        embedding_model_name='all-MiniLM-L6-v2',
-                       persist_directory="chroma_db"):
-    """Queries the ChromaDB index."""
+                       persist_directory="chroma_db",
+                       return_results=False):
+    """Queries the ChromaDB index and optionally returns results."""
     client = chromadb.PersistentClient(path=persist_directory)
     try:
         collection = client.get_collection(name=collection_name)
@@ -94,7 +99,7 @@ def query_chroma_index(query,
             f"Collection '{collection_name}' not found in {persist_directory}"
             ". Please create the index first using the --index option."
         )
-        return
+        return None
 
     model = SentenceTransformer(embedding_model_name)
     query_embedding = model.encode([query]).tolist()
@@ -112,8 +117,158 @@ def query_chroma_index(query,
             print(f"  Content: {results['documents'][0][i]}")
             print(f"  Distance: {results['distances'][0][i]:.4f}")
             print("-" * 20)
+
+        if return_results:
+            return results
     else:
         print("No matching results found.")
+        return None
+
+
+def format_qa_prompt(query, results, prompt_template=None):
+    """
+    Format query results into a QA prompt.
+
+    Args:
+        query: The user's question
+        results: ChromaDB query results
+        prompt_template: Optional custom template. If None, uses default format.
+
+    Returns:
+        Formatted prompt string for QA model
+    """
+    if not results or not results['documents'] or not results['metadatas']:
+        return None
+
+    if prompt_template is None:
+        prompt_template = (
+            "Context information is below.\n"
+            "---------------------\n"
+            "{context}\n"
+            "---------------------\n"
+            "Given the context information and not prior knowledge, answer the question:\n"
+            "Question: {question}\n"
+            "Answer:"
+        )
+
+    context_parts = []
+    for i in range(len(results['documents'][0])):
+        metadata = results['metadatas'][0][i]
+        source = metadata['source']
+        content = results['documents'][0][i]
+
+        context_parts.append(
+            f"[Source: {source}]\n{content}"
+        )
+
+    context = "\n\n".join(context_parts)
+    prompt = prompt_template.format(context=context, question=query)
+
+    return prompt
+
+
+def query_deepseek(prompt, model="deepseek-chat", temperature=0.7):
+    """
+    Query DeepSeek API with a prompt and return the response.
+
+    Args:
+        prompt: The formatted prompt string
+        model: DeepSeek model to use
+        temperature: Sampling temperature (0.0 to 1.0)
+
+    Returns:
+        Response text from DeepSeek
+    """
+    api_key = os.getenv("DEEPSEEK_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "DEEPSEEK_API_KEY environment variable not set. "
+            "Please set your API key first."
+        )
+
+    try:
+        client = DeepSeekAPI(api_key)
+        response = client.chat_completion(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=temperature
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"Error querying DeepSeek API: {str(e)}")
+        return None # Or a more informative error message
+
+
+def query_claude(prompt, model="claude-3-opus-20240229", temperature=0.7):
+    """
+    Query Claude API with a prompt and return the response.
+
+    Args:
+        prompt: The formatted prompt string
+        model: Claude model to use
+        temperature: Sampling temperature (0.0 to 1.0)
+
+    Returns:
+        Response text from Claude
+    """
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "ANTHROPIC_API_KEY environment variable not set. "
+            "Please set your API key first."
+        )
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            max_tokens=2048,
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.content[0].text
+    except Exception as e:
+        return f"Error querying Claude API: {str(e)}"
+
+
+def display_markdown_response(response):
+    """Display the response text as formatted markdown."""
+    console = Console()
+    md = Markdown(response)
+    console.print(md)
+
+
+def answer_question(search_query, question, collection_name="text_collection",
+                    num_results=5, model="deepseek-chat"):
+    """
+    End-to-end pipeline to answer questions using retrieved context.
+
+    Args:
+        query: Search query for finding relevant context
+        question: The specific question to answer
+        collection_name: Name of the ChromaDB collection
+        num_results: Number of context chunks to retrieve
+        model: DeepSeek model to use
+    """
+    # Get relevant chunks
+    results = query_chroma_index(search_query, collection_name=collection_name,
+                                 num_results=num_results, return_results=True)
+    if not results:
+        print("No relevant context found to answer the question.")
+        return
+
+    # Format prompt with context and question
+    prompt = format_qa_prompt(question, results)
+
+    # Get answer based on model type
+    if model.startswith("deepseek"):
+        response = query_deepseek(prompt, model=model)
+    else:
+        response = query_claude(prompt, model=model)
+
+    # Display formatted response
+    print("\nAnswer:")
+    print("-------")
+    display_markdown_response(response)
 
 
 if __name__ == "__main__":
@@ -136,6 +291,12 @@ if __name__ == "__main__":
         type=str,
         default="text_collection",
         help="Name of the ChromaDB collection."
+    )
+    group.add_argument(
+        "--ask",
+        nargs=2,
+        metavar=('QUERY', 'QUESTION'),
+        help="Search context with QUERY and ask QUESTION about it"
     )
     parser.add_argument(
         "--persist_directory",
@@ -167,6 +328,12 @@ if __name__ == "__main__":
         default='all-MiniLM-L6-v2',
         help="Name of the sentence transformer model to use."
     )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="claude-3-opus-20240229",
+        help="DeepSeek model to use for answering questions"
+    )
 
     args = parser.parse_args()
 
@@ -186,4 +353,12 @@ if __name__ == "__main__":
             args.num_results,
             args.embedding_model,
             args.persist_directory
+        )
+    elif args.ask:
+        answer_question(
+            search_query=args.ask[0],
+            question=args.ask[1],
+            collection_name=args.collection_name,
+            num_results=args.num_results,
+            model=args.model
         )
