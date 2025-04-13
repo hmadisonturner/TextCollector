@@ -238,7 +238,7 @@ def display_markdown_response(response):
 
 
 def answer_question(search_query, question, collection_name="text_collection",
-                    num_results=5, model="deepseek-chat"):
+                    num_results=5, model="deepseek-chat", temperature=0.7):
     """
     End-to-end pipeline to answer questions using retrieved context.
 
@@ -248,6 +248,7 @@ def answer_question(search_query, question, collection_name="text_collection",
         collection_name: Name of the ChromaDB collection
         num_results: Number of context chunks to retrieve
         model: DeepSeek model to use
+        temperature: Sampling temperature (0.0 to 1.0)
     """
     # Get relevant chunks
     results = query_chroma_index(search_query, collection_name=collection_name,
@@ -261,9 +262,9 @@ def answer_question(search_query, question, collection_name="text_collection",
 
     # Get answer based on model type
     if model.startswith("deepseek"):
-        response = query_deepseek(prompt, model=model)
+        response = query_deepseek(prompt, model=model, temperature=temperature)
     else:
-        response = query_claude(prompt, model=model)
+        response = query_claude(prompt, model=model, temperature=temperature)
 
     # Display formatted response
     print("\nAnswer:")
@@ -335,6 +336,12 @@ if __name__ == "__main__":
         default="claude-3-opus-20240229",
         help="Model to use for answering questions (claude-* or deepseek-*)"
     )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.7,
+        help="Sampling temperature (0.0 to 1.0)"
+    )
 
     args = parser.parse_args()
 
@@ -361,5 +368,6 @@ if __name__ == "__main__":
             question=args.ask[1],
             collection_name=args.collection_name,
             num_results=args.num_results,
-            model=args.model
+            model=args.model,
+            temperature=args.temperature
         )
