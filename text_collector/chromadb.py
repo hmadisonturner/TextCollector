@@ -1,8 +1,9 @@
-from TextCollector.chunker import chunk_text
-from TextCollector.file_io import extract_text_from_txt
+from text_collector.chunker import chunk_text
+from text_collector.file_io import extract_text_from_txt
 import chromadb
 import os
 from sentence_transformers import SentenceTransformer
+
 
 def query_chroma_index(query,
                        collection_name="text_collection",
@@ -88,4 +89,3 @@ def create_chroma_index(text_files,
     print(
         f"ChromaDB index created and saved to {persist_directory} with "
         f"collection name '{collection_name}'")
-

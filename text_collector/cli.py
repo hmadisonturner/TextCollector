@@ -1,5 +1,5 @@
-from TextCollector.core import answer_question
-from TextCollector.chromadb import create_chroma_index, query_chroma_index
+from text_collector.core import answer_question
+from text_collector.chromadb import create_chroma_index, query_chroma_index
 import argparse
 from rich.console import Console
 from rich.markdown import Markdown
@@ -11,11 +11,11 @@ def display_markdown_response(response):
     md = Markdown(response)
     console.print(md)
 
+
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Semantic search and question answering for your text collections."
-    )
+        description="Semantic search and question answering for your text collections.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         "--index",
@@ -84,6 +84,7 @@ def parse_args():
     )
 
     return parser.parse_args()
+
 
 def main():
     """Entry point for CLI execution."""

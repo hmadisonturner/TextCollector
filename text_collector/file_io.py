@@ -1,12 +1,13 @@
 import os
 
+
 def extract_text_from_txt(file_path):
     """
     Extract text content from a TXT file.
-    
+
     Args:
         file_path: Path to the TXT file
-        
+
     Returns:
         String containing the text content
     """

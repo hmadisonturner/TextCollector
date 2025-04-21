@@ -1,7 +1,8 @@
 import os
-from TextCollector.chromadb import query_chroma_index
-from TextCollector.claude import query_claude
-from TextCollector.deepseek import query_deepseek
+from text_collector.chromadb import query_chroma_index
+from text_collector.claude import query_claude
+from text_collector.deepseek import query_deepseek
+
 
 def format_qa_prompt(question, results, prompt_template=None):
     """
@@ -26,8 +27,7 @@ def format_qa_prompt(question, results, prompt_template=None):
             "---------------------\n"
             "Given the context information and not prior knowledge, answer the question:\n"
             "Question: {question}\n"
-            "Answer:"
-        )
+            "Answer:")
 
     context_parts = []
     for i in range(len(results['documents'][0])):
@@ -43,6 +43,7 @@ def format_qa_prompt(question, results, prompt_template=None):
     prompt = prompt_template.format(context=context, question=question)
 
     return prompt
+
 
 def answer_question(search_query, question, collection_name="text_collection",
                     num_results=5, model="deepseek-chat", temperature=0.7):
@@ -85,6 +86,10 @@ def answer_question(search_query, question, collection_name="text_collection",
                 "Please set your API key first."
             )
 
-        response = query_claude(prompt, api_key, model=model, temperature=temperature)
+        response = query_claude(
+            prompt,
+            api_key,
+            model=model,
+            temperature=temperature)
 
     return response
