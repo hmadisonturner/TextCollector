@@ -14,7 +14,7 @@ def query_chroma_index(query,
     client = chromadb.PersistentClient(path=persist_directory)
     try:
         collection = client.get_collection(name=collection_name)
-    except BaseException:
+    except chromadb.errors.InvalidCollectionName:
         print(
             f"Collection '{collection_name}' not found in {persist_directory}"
             ". Please create the index first using the --index option."
