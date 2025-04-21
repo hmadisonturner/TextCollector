@@ -28,6 +28,7 @@ def query_deepseek(prompt, api_key, model="deepseek-chat", temperature=0.7):
         response.raise_for_status()
         return response.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        print(f"Error querying DeepSeek API: {str(e)}")
-        return None # Or a more informative error message
+    except Exception as e:
+        print(f"Error querying DeepSeek API: {type(e).__name__} - {str(e)}")
+        return None
 
