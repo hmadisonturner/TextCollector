@@ -12,10 +12,6 @@ Retrieval-Augmented Generation (RAG) command line tool
 git clone https://github.com/hmadisonturner/TextCollector.git
 cd TextCollector
 
-# Create and activate a virtual environment
-python -m venv env
-source env/bin/activate  # On Windows: env\Scripts\activate
-
 # Install dependencies
 pip install -r requirements.txt
 ```
@@ -24,19 +20,19 @@ pip install -r requirements.txt
 
 ```bash
 # Index text files
-python -m TextCollector --index path/to/file1.txt path/to/file2.txt
+python text_collector.py --index path/to/file1.txt path/to/file2.txt
 
 # Query the index
-python -m TextCollector --query "your search query"
+python text_collector.py --query "your search query"
 
 # Ask questions about your data
-python -m TextCollector --ask "search query" "your specific question"
+python text_collector.py --ask "search query" "your specific question"
 ```
 
 ## Command Line Options
 
 ```
-usage: python -m TextCollector [-h] [--index TEXT_FILE [TEXT_FILE ...]] [--query QUERY]
+usage: python  text_collector.py [-h] [--index TEXT_FILE [TEXT_FILE ...]] [--query QUERY]
                               [--collection_name COLLECTION_NAME] [--ask QUERY QUESTION]
                               [--persist_directory PERSIST_DIRECTORY] [--chunk_size CHUNK_SIZE]
                               [--chunk_overlap CHUNK_OVERLAP] [--num_results NUM_RESULTS]
