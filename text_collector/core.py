@@ -60,7 +60,7 @@ def answer_question(search_query, question, collection_name="text_collection",
     """
     # Get relevant chunks
     results = query_chroma_index(search_query, collection_name=collection_name,
-                                 num_results=num_results, return_results=True)
+                                 num_results=num_results)
     if not results:
         print("No relevant context found to answer the question.")
         return

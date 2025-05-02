@@ -1,8 +1,12 @@
 from text_collector.core import answer_question
 from text_collector.chromadb import create_chroma_index, query_chroma_index
 import argparse
-from rich.console import Console
+from rich import box, print
+from rich.panel import Panel
 from rich.markdown import Markdown
+from rich.progress import Progress, SpinnerColumn, TextColumn
+
+from rich.console import Console
 
 
 def display_markdown_response(response):
@@ -10,6 +14,22 @@ def display_markdown_response(response):
     console = Console()
     md = Markdown(response)
     console.print(md)
+
+
+def create_panel(content, title=""):
+    return Panel(content, title=title, title_align="left", border_style="blue", box=box.HEAVY, highlight=True, padding=(1, 2))
+
+
+def format_query_results(source, distance, content):
+    """Format the query results for the user."""
+    output = f"""
+**Source:** {source}
+
+**Distance:** {distance:.4f}
+
+{content}
+    """
+    return Markdown(output)
 
 
 def parse_args():
@@ -100,13 +120,30 @@ def main():
                 args.persist_directory
             )
         elif args.query:
-            query_chroma_index(
-                args.query,
-                args.collection_name,
-                args.num_results,
-                args.embedding_model,
-                args.persist_directory
-            )
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[bold blue]{task.description}"),
+                transient=True,
+            ) as progress:
+                task_id = progress.add_task(
+                    f"Querying {args.collection_name}...")
+                results = query_chroma_index(
+                    args.query,
+                    args.collection_name,
+                    args.num_results,
+                    args.embedding_model,
+                    args.persist_directory
+                )
+
+            for i in range(len(results['documents'][0])):
+                md = format_query_results(
+                    source=results['metadatas'][0][i]['source'],
+                    content=results['documents'][0][i],
+                    distance=results['distances'][0][i]
+                )
+                panel = create_panel(md, title=f"Result {i + 1}")
+                print(panel)
+
         elif args.ask:
             response = answer_question(
                 search_query=args.ask[0],
