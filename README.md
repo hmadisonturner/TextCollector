@@ -89,3 +89,13 @@ The project has been modularized into the following components:
 
 - `ANTHROPIC_API_KEY`: Your Anthropic API key for Claude models
 - `DEEPSEEK_API_KEY`: Your DeepSeek API key for DeepSeek models
+
+## Development Approach
+
+TextCollector uses a documentation-driven development workflow optimized for collaboration between human developers and AI coding assistants:
+
+- **Documentation Structure**: The `/docs` directory contains specifications, architecture decisions, and implementation plans
+- **Rational Product Flow**: Planning documents feed directly into development tasks with clear traceability
+- **AI-Friendly Context**: Structured documentation provides AI assistants with comprehensive project understanding
+
+This approach improves development consistency and facilitates effective collaboration regardless of whether tasks are performed by humans or AI agents.
