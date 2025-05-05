@@ -9,15 +9,14 @@ def query_chroma_index(query,
                        collection_name="text_collection",
                        num_results=5,
                        embedding_model_name='all-MiniLM-L6-v2',
-                       persist_directory="chroma_db",
-                       return_results=False):
+                       db_directory="chroma_db"):
     """Queries the ChromaDB index and optionally returns results."""
-    client = chromadb.PersistentClient(path=persist_directory)
+    client = chromadb.PersistentClient(path=db_directory)
     try:
         collection = client.get_collection(name=collection_name)
     except chromadb.errors.InvalidCollectionName:
         print(
-            f"Collection '{collection_name}' not found in {persist_directory}"
+            f"Collection '{collection_name}' not found in {db_directory}"
             ". Please create the index first using the --index option."
         )
         return None
@@ -32,15 +31,7 @@ def query_chroma_index(query,
 
     print(f"\nQuery: {query}\n")
     if results and results['documents'] and results['metadatas']:
-        for i in range(len(results['documents'][0])):
-            print(f"Result {i+1}:")
-            print(f"  File: {results['metadatas'][0][i]['source']}")
-            print(f"  Content: {results['documents'][0][i]}")
-            print(f"  Distance: {results['distances'][0][i]:.4f}")
-            print("-" * 20)
-
-        if return_results:
-            return results
+        return results
     else:
         print("No matching results found.")
         return None
@@ -51,7 +42,7 @@ def create_chroma_index(text_files,
                         chunk_size=1000,
                         chunk_overlap=100,
                         embedding_model_name='all-MiniLM-L6-v2',
-                        persist_directory="chroma_db"):
+                        db_directory="chroma_db"):
     """Creates a ChromaDB index from TXT files."""
     num_chunks = 0
     all_chunks = []
@@ -59,7 +50,7 @@ def create_chroma_index(text_files,
     ids = []
 
     model = SentenceTransformer(embedding_model_name)
-    client = chromadb.PersistentClient(path=persist_directory)
+    client = chromadb.PersistentClient(path=db_directory)
     collection = client.get_or_create_collection(name=collection_name)
 
     for text_file in text_files:
@@ -87,5 +78,5 @@ def create_chroma_index(text_files,
     )
 
     print(
-        f"ChromaDB index created and saved to {persist_directory} with "
+        f"ChromaDB index created and saved to {db_directory} with "
         f"collection name '{collection_name}'")

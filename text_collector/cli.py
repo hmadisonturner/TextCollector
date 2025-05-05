@@ -1,8 +1,15 @@
+from enum import Enum
 from text_collector.core import answer_question
 from text_collector.chromadb import create_chroma_index, query_chroma_index
 import argparse
-from rich.console import Console
+from rich import box, print
+from rich.panel import Panel
 from rich.markdown import Markdown
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.theme import Theme
+
+
+from rich.console import Console
 
 
 def display_markdown_response(response):
@@ -10,6 +17,10 @@ def display_markdown_response(response):
     console = Console()
     md = Markdown(response)
     console.print(md)
+
+
+def create_panel(content, title="", subtitle=""):
+    return Panel(content, title=title, title_align="left", border_style="blue", box=box.HEAVY, highlight=True, padding=(1, 2), subtitle=subtitle, subtitle_align="right")
 
 
 def parse_args():
@@ -41,7 +52,7 @@ def parse_args():
         help="Search context with QUERY and ask QUESTION about it"
     )
     parser.add_argument(
-        "--persist_directory",
+        "--db_directory",
         type=str,
         default="chroma_db",
         help="Directory to persist the ChromaDB database."
@@ -89,6 +100,15 @@ def parse_args():
 def main():
     """Entry point for CLI execution."""
     args = parse_args()
+    theme = Theme(
+        inherit=False,
+        styles={
+            "result-border": "blue",
+            "result-title": "bold grey0 on blue",
+            "result-distance": "bold yellow"
+        }
+    )
+    console = Console(theme=theme)
     try:
         if args.index:
             create_chroma_index(
@@ -97,30 +117,53 @@ def main():
                 args.chunk_size,
                 args.chunk_overlap,
                 args.embedding_model,
-                args.persist_directory
+                args.db_directory
             )
         elif args.query:
-            query_chroma_index(
-                args.query,
-                args.collection_name,
-                args.num_results,
-                args.embedding_model,
-                args.persist_directory
-            )
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[bold blue]{task.description}"),
+                transient=True,
+            ) as progress:
+                task_id = progress.add_task(
+                    f"Querying {args.collection_name}...")
+                results = query_chroma_index(
+                    args.query,
+                    args.collection_name,
+                    args.num_results,
+                    args.embedding_model,
+                    args.db_directory
+                )
+
+            for i in range(len(results['documents'][0])):
+                source = results['metadatas'][0][i]['source']
+                content = results['documents'][0][i]
+                distance = results['distances'][0][i]
+                panel = create_panel(
+                    content, title=f"[result-title] Source: {source} [/result-title]", subtitle=f"[result-distance] Distance: {distance:.2f} [/result-distance]")
+                console.print(panel)
+
         elif args.ask:
-            response = answer_question(
-                search_query=args.ask[0],
-                question=args.ask[1],
-                collection_name=args.collection_name,
-                num_results=args.num_results,
-                model=args.model,
-                temperature=args.temperature
-            )
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[bold blue]{task.description}[/bold blue]"),
+                transient=True,
+            ) as progress:
+                task_id = progress.add_task(
+                    f"Querying {args.collection_name}...")
+                response = answer_question(
+                    search_query=args.ask[0],
+                    question=args.ask[1],
+                    collection_name=args.collection_name,
+                    num_results=args.num_results,
+                    model=args.model,
+                    temperature=args.temperature
+                )
             if response:
-                print("\nAnswer:")
-                print("-------")
-                display_markdown_response(response)
+                panel = create_panel(
+                    response, title=f"[answer-title] Answer [/answer-title]", subtitle=None)
+                console.print(panel)
         return 0
     except Exception as e:
-        print(f"Error: {e}")
+        console.print(f"Error: {e}")
         return 1
