@@ -5,6 +5,16 @@ Retrieval-Augmented Generation (RAG) command line tool
 - Query them semantically
 - Ask Claude or DeepSeek questions about your text collections
 
+## Vision
+
+TextCollector aims to be:
+
+1. A **useful general-purpose tool** for semantic search and question answering across personal and research document collections
+2. A **flexible test bed** for experimenting with different approaches to textual research and knowledge management
+3. An **exemplar of AI-human collaboration** in both its development methodology and application capabilities
+
+By combining these elements, TextCollector strives to advance how we interact with, organize, and extract knowledge from text.
+
 ## Installation
 
 ```bash
