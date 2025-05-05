@@ -52,7 +52,7 @@ def parse_args():
         help="Search context with QUERY and ask QUESTION about it"
     )
     parser.add_argument(
-        "--persist_directory",
+        "--db_directory",
         type=str,
         default="chroma_db",
         help="Directory to persist the ChromaDB database."
@@ -117,7 +117,7 @@ def main():
                 args.chunk_size,
                 args.chunk_overlap,
                 args.embedding_model,
-                args.persist_directory
+                args.db_directory
             )
         elif args.query:
             with Progress(
@@ -132,7 +132,7 @@ def main():
                     args.collection_name,
                     args.num_results,
                     args.embedding_model,
-                    args.persist_directory
+                    args.db_directory
                 )
 
             for i in range(len(results['documents'][0])):

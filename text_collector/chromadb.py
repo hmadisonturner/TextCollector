@@ -31,15 +31,6 @@ def query_chroma_index(query,
 
     print(f"\nQuery: {query}\n")
     if results and results['documents'] and results['metadatas']:
-        '''
-        for i in range(len(results['documents'][0])):
-            print(f"Result {i+1}:")
-            print(f"  File: {results['metadatas'][0][i]['source']}")
-            print(f"  Content: {results['documents'][0][i]}")
-            print(f"  Distance: {results['distances'][0][i]:.4f}")
-            print("-" * 20)
-            '''
-
         return results
     else:
         print("No matching results found.")
