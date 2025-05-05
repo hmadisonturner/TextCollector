@@ -8,6 +8,7 @@ This directory contains comprehensive documentation for the TextCollector projec
   - Roadmaps, project plans, and timelines
   - Development priorities and milestone tracking
   - TODO lists and implementation plans
+  - Strategic recommendations and design principles
 
 - **specifications/** - Detailed technical specifications
   - Feature specifications and requirements
