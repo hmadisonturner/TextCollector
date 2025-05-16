@@ -29,7 +29,6 @@ def query_chroma_index(query,
         n_results=num_results
     )
 
-    print(f"\nQuery: {query}\n")
     if results and results['documents'] and results['metadatas']:
         return results
     else:

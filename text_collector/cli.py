@@ -19,8 +19,8 @@ def display_markdown_response(response):
     console.print(md)
 
 
-def create_panel(content, title="", subtitle=""):
-    return Panel(content, title=title, title_align="left", border_style="blue", box=box.HEAVY, highlight=True, padding=(1, 2), subtitle=subtitle, subtitle_align="right")
+def create_panel(content, border_style="", title=" Panel ", subtitle=None):
+    return Panel(content, title=title, title_align="left", border_style=border_style, box=box.HEAVY, highlight=True, padding=(1, 2), subtitle=subtitle, subtitle_align="right", expand=True, width=80)
 
 
 def parse_args():
@@ -100,12 +100,24 @@ def parse_args():
 def main():
     """Entry point for CLI execution."""
     args = parse_args()
+    black_color = "black"
+    result_color = answer_color = "bright_magenta"
+    query_color = question_color = "bright_blue"
+    "bright_magenta"
     theme = Theme(
         inherit=False,
         styles={
-            "result-border": "blue",
-            "result-title": "bold grey0 on blue",
-            "result-distance": "bold yellow"
+            "result-color": f"{result_color}",
+            "result-title": f"bold {black_color} on {result_color}",
+            "result-distance-good": "bold bright_green",
+            "result-distance-fair": "bold bright_yellow",
+            "result-distance-bad": "bold bright_red",
+            "answer-color": f"{answer_color}",
+            "answer-title": f"bold {black_color} on {answer_color}",
+            "query-color": f"{query_color}",
+            "query-title": f"bold {black_color} on {query_color}",
+            "question-color": f"{question_color}",
+            "question-title": f"bold {black_color} on {question_color}"
         }
     )
     console = Console(theme=theme)
@@ -120,9 +132,10 @@ def main():
                 args.db_directory
             )
         elif args.query:
+            console.print(create_panel(args.query, title="[query-title] Query ", border_style="query-color"))
             with Progress(
                 SpinnerColumn(),
-                TextColumn("[bold blue]{task.description}"),
+                TextColumn("[bold result-color]{task.description}"),
                 transient=True,
             ) as progress:
                 task_id = progress.add_task(
@@ -139,14 +152,16 @@ def main():
                 source = results['metadatas'][0][i]['source']
                 content = results['documents'][0][i]
                 distance = results['distances'][0][i]
+                result_quality = "bad" if distance > 1.5 else ("fair" if  distance > 1.25 else "good")
                 panel = create_panel(
-                    content, title=f"[result-title] Source: {source} [/result-title]", subtitle=f"[result-distance] Distance: {distance:.2f} [/result-distance]")
+                    content, border_style="result-color", title=f"[result-title] Source: {source} ", subtitle=f"[result-distance-{result_quality}] Distance: {distance:.2f} ")
                 console.print(panel)
 
         elif args.ask:
+            console.print(create_panel(args.ask[1], title="[question-title] Question ", border_style="question-color"))
             with Progress(
                 SpinnerColumn(),
-                TextColumn("[bold blue]{task.description}[/bold blue]"),
+                TextColumn("[bold answer-color]{task.description}"),
                 transient=True,
             ) as progress:
                 task_id = progress.add_task(
@@ -161,7 +176,7 @@ def main():
                 )
             if response:
                 panel = create_panel(
-                    response, title=f"[answer-title] Answer [/answer-title]", subtitle=None)
+                    Markdown(response), border_style="answer-color", title=f"[answer-title] Answer ", subtitle=None)
                 console.print(panel)
         return 0
     except Exception as e:

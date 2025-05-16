@@ -16,9 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Function naming: verb_noun format with snake_case
 - Error handling: Use specific exceptions with informative error messages
 - Typing: Document types in docstrings
-- API keys should be stored as environment variables (ANTHROPIC_API_KEY, DEEPSEEK_API_KEY)
 - Prefer modular architecture with separation of concerns
-- Temperature parameter defaults to 0.7 for AI models
 
 Before submitting changes:
 - Run all tests
